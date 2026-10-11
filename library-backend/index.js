@@ -98,6 +98,7 @@ const typeDefs = /* GraphQL */ `
     name: String!
     id: ID!
     born: Int
+    bookCount: Int!
   }
 
   type Book {
@@ -112,6 +113,7 @@ const typeDefs = /* GraphQL */ `
     bookCount: Int!
     authorCount: Int!
     allBooks: [Book!]!
+    allAuthors: [Author!]!
   }
 `;
 
@@ -120,6 +122,16 @@ const resolvers = {
     bookCount: () => books.length,
     authorCount: () => authors.length,
     allBooks: () => books,
+    allAuthors: () => authors,
+  },
+
+  Author: {
+    bookCount: (root) => {
+      return books.reduce(
+        (acc, curr) => (curr.author === root.name ? acc + 1 : acc),
+        0,
+      );
+    },
   },
 };
 
