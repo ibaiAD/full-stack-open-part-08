@@ -4,7 +4,7 @@ import { useMutation } from "@apollo/client/react";
 
 import { EDIT_AUTHOR } from "../queries";
 
-const BirthYearForm = () => {
+const BirthYearForm = ({ authors }) => {
   const [name, setName] = useState("");
   const [birthYear, setBirthYear] = useState("");
 
@@ -29,17 +29,29 @@ const BirthYearForm = () => {
       <form onSubmit={submit}>
         <div>
           <label htmlFor="name">name</label>
-          <input
+          <select
             id="name"
+            name="name"
             value={name}
             onChange={({ target }) => setName(target.value)}
-          />
+          >
+            <option value="" disabled>
+              Select an author
+            </option>
+
+            {authors.map((a) => (
+              <option key={a.id} value={a.name}>
+                {a.name}
+              </option>
+            ))}
+          </select>
         </div>
 
         <div>
-          <label htmlFor="birthYear">birthYear</label>
+          <label htmlFor="birthYear">born</label>
           <input
             id="birthYear"
+            type="number"
             value={birthYear}
             onChange={({ target }) => setBirthYear(target.value)}
           />
