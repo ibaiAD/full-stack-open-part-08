@@ -1,6 +1,9 @@
 const { GraphQLError } = require("graphql");
+const jwt = require("jsonwebtoken");
+
 const Author = require("./models/author");
 const Book = require("./models/book");
+const User = require("./models/user");
 
 const resolvers = {
   Query: {
@@ -24,6 +27,9 @@ const resolvers = {
       return Book.find(filter).populate("author");
     },
     allAuthors: async () => Author.find({}),
+    me: async (_root, _args, context) => {
+      return context.currentUser;
+    },
   },
 
   Author: {
@@ -33,7 +39,15 @@ const resolvers = {
   },
 
   Mutation: {
-    addBook: async (_root, args) => {
+    addBook: async (_root, args, { currentUser }) => {
+      if (!currentUser) {
+        throw new GraphQLError("not authenticated", {
+          extensions: {
+            code: "UNAUTHENTICATED",
+          },
+        });
+      }
+
       const { author: name, ...rest } = args;
 
       try {
@@ -55,7 +69,15 @@ const resolvers = {
         });
       }
     },
-    editAuthor: async (_root, { name, setBornTo }) => {
+    editAuthor: async (_root, { name, setBornTo }, { currentUser }) => {
+      if (!currentUser) {
+        throw new GraphQLError("not authenticated", {
+          extensions: {
+            code: "UNAUTHENTICATED",
+          },
+        });
+      }
+
       try {
         const author = await Author.findOne({ name });
 
@@ -71,6 +93,39 @@ const resolvers = {
           },
         });
       }
+    },
+    createUser: async (_root, args) => {
+      const user = new User({
+        username: args.username,
+        favoriteGenre: args.favoriteGenre,
+      });
+
+      return user.save().catch((error) => {
+        throw new GraphQLError(`Creating the user failed: ${error.message}`, {
+          extensions: {
+            code: "BAD_USER_INPUT",
+            error,
+          },
+        });
+      });
+    },
+    login: async (_root, args) => {
+      const user = await User.findOne({ username: args.username });
+
+      if (!user || args.password !== "secret") {
+        throw new GraphQLError("wrong credentials", {
+          extensions: {
+            code: "BAD_USER_INPUT",
+          },
+        });
+      }
+
+      const userForToken = {
+        username: user.username,
+        id: user._id,
+      };
+
+      return { value: jwt.sign(userForToken, process.env.JWT_SECRET) };
     },
   },
 };
