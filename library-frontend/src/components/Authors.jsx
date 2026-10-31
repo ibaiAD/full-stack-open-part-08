@@ -3,12 +3,12 @@ import { useQuery } from "@apollo/client/react";
 import { ALL_AUTHORS } from "../queries";
 import BirthYearForm from "./BirthYearForm";
 
-const Authors = (props) => {
+const Authors = ({ show, isAuthenticated }) => {
   const result = useQuery(ALL_AUTHORS, {
-    skip: !props.show,
+    skip: !show,
   });
 
-  if (!props.show) {
+  if (!show) {
     return null;
   }
   if (result.loading) {
@@ -38,7 +38,7 @@ const Authors = (props) => {
         </tbody>
       </table>
 
-      <BirthYearForm authors={authors} />
+      {isAuthenticated && <BirthYearForm authors={authors} />}
     </div>
   );
 };
