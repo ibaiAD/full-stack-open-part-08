@@ -27,6 +27,9 @@ const resolvers = {
       return Book.find(filter).populate("author");
     },
     allAuthors: async () => Author.find({}),
+    allGenres: async () => {
+      return Book.distinct("genres");
+    },
     me: async (_root, _args, context) => {
       return context.currentUser;
     },
