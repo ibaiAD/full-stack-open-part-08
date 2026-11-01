@@ -12,7 +12,12 @@ const NewBook = ({ show, setError }) => {
   const [genres, setGenres] = useState([]);
 
   const [createBook] = useMutation(CREATE_BOOK, {
-    refetchQueries: [{ query: ALL_AUTHORS }, { query: ALL_BOOKS }],
+    update: (cache) => {
+      cache.evict({ fieldName: "allAuthors" });
+      cache.evict({ fieldName: "allBooks" });
+      cache.evict({ fieldName: "allGenres" });
+      cache.gc();
+    },
   });
 
   if (!show) {
