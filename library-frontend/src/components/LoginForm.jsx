@@ -15,7 +15,7 @@ const LoginForm = ({ show, setError, setToken, setPage }) => {
       localStorage.setItem("library-user-token", token);
     },
     onError: (error) => {
-      setError(error.message);
+      setError(`login failed - ${error.message}`);
     },
   });
 
