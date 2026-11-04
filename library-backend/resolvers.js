@@ -1,9 +1,12 @@
 const { GraphQLError } = require("graphql");
+const { PubSub } = require("graphql-subscriptions");
 const jwt = require("jsonwebtoken");
 
 const Author = require("./models/author");
 const Book = require("./models/book");
 const User = require("./models/user");
+
+const pubsub = new PubSub();
 
 const resolvers = {
   Query: {
@@ -62,7 +65,11 @@ const resolvers = {
         }
 
         const book = new Book({ ...rest, author });
-        return await book.save();
+        await book.save();
+
+        await pubsub.publish("BOOK_ADDED", { bookAdded: book });
+
+        return book;
       } catch (error) {
         throw new GraphQLError(`Saving book failed: ${error.message}`, {
           extensions: {
@@ -138,6 +145,11 @@ const resolvers = {
       await Book.deleteMany({});
       await User.deleteMany({});
       return true;
+    },
+  },
+  Subscription: {
+    bookAdded: {
+      subscribe: () => pubsub.asyncIterableIterator("BOOK_ADDED"),
     },
   },
 };
